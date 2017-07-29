@@ -1,3 +1,5 @@
 bottle==0.12.13
 oauth2==1.9.0.post1
 tweepy
+flask
+line-bot-sdk-python
