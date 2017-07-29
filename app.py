@@ -20,8 +20,8 @@ def get_oauth():
     oauth_token = request_token['oauth_token']
     oauth_token_secret = request_token['oauth_token_secret']
     url = '{}?oauth_token={}'.format(authenticate_url, oauth_token)
-    print(oauth_token)
-    print(oauth_token_secret)
+    os.environ['oauth_token_tmp'] = oauth_token
+    os.environ['oauth_token_secret_tmp'] = oauth_token_secret
     return url, oauth_token, oauth_token_secret
 
 @get('/auth')
@@ -31,6 +31,20 @@ def authenticate():
 
 @get('/callback')
 def callback():
+    oauth_token = os.environ['oauth_token_tmp']
+    os.unsetenv('oauth_token_tmp')
+    oauth_token_secret = os.environ['oauth_token_secret_tmp']
+    os.unsetenv('oauth_token_secret_tmp')
+    oauth_verifier = request.query['oauth_verifier']
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.request_token = {
+        'oauth_token': oauth_token,
+        'oauth_token_secret': oauth_token_secret,
+        'oauth_callback_confirmed': True,
+    }
+    access_token_key, access_token_secret = auth.get_access_token(oauth_verifier)
+    print(access_token_key)
+    print(access_token_secret)
     return 'called back'
 
 def parse_qsl(content):
