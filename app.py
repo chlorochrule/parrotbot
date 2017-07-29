@@ -35,6 +35,8 @@ def callback():
 
 def parse_qsl(content):
     param = {}
+    print(type(content))
+    print(content)
     for i in content.split('&'):
         _p = i.split('=')
         param[_p[0]] = _p[1]
