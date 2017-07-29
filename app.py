@@ -20,8 +20,8 @@ def get_oauth():
     oauth_token = request_token['oauth_token']
     oauth_token_secret = request_token['oauth_token_secret']
     url = '{}?oauth_token={}'.format(authenticate_url, oauth_token)
-    os.environ['oauth_token_tmp'] = oauth_token
-    os.environ['oauth_token_secret_tmp'] = oauth_token_secret
+    print(oauth_token)
+    print(oauth_token_secret)
     return url, oauth_token, oauth_token_secret
 
 @get('/auth')
