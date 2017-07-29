@@ -1,59 +1,55 @@
 #-*- coding: utf-8 -*-
 
 import os
+from random import randint
 import tweepy
-import oauth2 as oauth
-from bottle import get, request, redirect, run
+from flask import Flask, request, abort
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import InvalidSignatureError
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
-request_token_url = 'https://twitter.com/oauth/request_token'
-access_token_url = 'https://twitter.com/oauth/access_token'
-authenticate_url = 'https://twitter.com/oauth/authenticate'
-
-consumer_key = os.environ['consumer_key']
-consumer_secret = os.environ['consumer_secret']
-
-def get_oauth():
-    consumer = oauth.Consumer(key=consumer_key, secret=consumer_secret)
-    client = oauth.Client(consumer)
-    resp, content = client.request(request_token_url, 'GET')
-    request_token = parse_qsl(content)
-    oauth_token = request_token['oauth_token']
-    oauth_token_secret = request_token['oauth_token_secret']
-    url = '{}?oauth_token={}'.format(authenticate_url, oauth_token)
-    os.environ['oauth_token_tmp'] = oauth_token
-    os.environ['oauth_token_secret_tmp'] = oauth_token_secret
-    return url, oauth_token, oauth_token_secret
-
-@get('/auth')
-def authenticate():
-    url = get_oauth()[0]
-    redirect(url)
-
-@get('/callback')
-def callback():
-    oauth_token = os.environ['oauth_token_tmp']
-    os.unsetenv('oauth_token_tmp')
-    oauth_token_secret = os.environ['oauth_token_secret_tmp']
-    os.unsetenv('oauth_token_secret_tmp')
-    oauth_verifier = request.query['oauth_verifier']
+def get_auth_api():
+    consumer_key = os.environ['consumer_key']
+    consumer_secret = os.environ['consumer_secret']
+    access_token_key = os.environ['twitter_access_token']
+    access_token_secret = os.environ['twitter_access_secret']
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.request_token = {
-        'oauth_token': oauth_token,
-        'oauth_token_secret': oauth_token_secret,
-        'oauth_callback_confirmed': True,
-    }
-    access_token_key, access_token_secret = auth.get_access_token(oauth_verifier)
-    print(access_token_key)
-    print(access_token_secret)
-    return 'called back'
+    auth.set_access_token(access_token_key, access_token_secret)
+    api = tweepy.API(auth_handler=auth, api_root='/1.1')
+    return api
 
-def parse_qsl(content):
-    param = {}
-    content = content.decode('utf-8')
-    for i in content.split('&'):
-        _p = i.split('=')
-        param[_p[0]] = _p[1]
-    return param
+def get_reply_text():
+    texts = [
+        'r u ok??',
+        'oh!',
+        'www',
+        ':-)',
+        'really?'
+    ]
+    return texts[randint(0, len(texts)-1)]
+
+app = Flask(__name__)
+line_bot_api = LineBotApi(os.environ['channel_access_token'])
+handler = WebhookHandler(os.environ['channel_access_secret'])
+
+twitter_bot_api = get_auth_api()
+
+@app.route('/callback', methods=['POST'])
+def callback():
+    signature = request.headers['X-Line-Signature']
+    body = request.get_data(as_text=True)
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError as e:
+        abort(400)
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=get_reply_text())
+    )
+    twitter_bot_api.update_status(event.message.text)
 
 if __name__ == '__main__':
-    run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run()
