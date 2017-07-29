@@ -35,12 +35,10 @@ def callback():
 
 def parse_qsl(content):
     param = {}
-    content = str(content)
-    print(content)
+    content = content.decode('utf-8')
     for i in content.split('&'):
         _p = i.split('=')
         param[_p[0]] = _p[1]
-    print(param)
     return param
 
 if __name__ == '__main__':
