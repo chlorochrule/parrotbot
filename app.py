@@ -29,8 +29,8 @@ def get_reply_text():
     return texts[randint(0, len(texts)-1)]
 
 app = Flask(__name__)
-channel_access_token = os.environ['channel_access_token'
-channel_access_secret = os.environ['channel_access_secret'
+channel_access_token = os.environ['channel_access_token']
+channel_access_secret = os.environ['channel_access_secret']
 line_bot_api = LineBotApi(channel_access_token])
 handler = WebhookHandler(channel_access_secret)
 
