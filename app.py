@@ -44,14 +44,17 @@ def callback():
         handler.handle(body, signature)
     except InvalidSignatureError as e:
         abort(400)
+    return '200'
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    reply_text = '長すギィ...' if len(event.message.text) > 140 else get_reply_text()
+
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=get_reply_text())
+        TextSendMessage(text=reply_text)
     )
-    twitter_bot_api.update_status(event.message.text)
+    twitter_bot_api.update_status(event.message.text.replace('@', ''))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
