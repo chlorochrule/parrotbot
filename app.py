@@ -44,7 +44,8 @@ def callback():
         handler.handle(body, signature)
     except InvalidSignatureError as e:
         abort(400)
-    return '200'
+
+    return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
