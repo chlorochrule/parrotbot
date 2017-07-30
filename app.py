@@ -24,7 +24,13 @@ def get_reply_text():
         'oh!',
         'www',
         ':-)',
-        'really?'
+        'really?',
+        'ほーん',
+        'まじかwww',
+        'ウケるwww',
+        'えぇ...(困惑)',
+        '...',
+        'うんうん！'
     ]
     return texts[randint(0, len(texts)-1)]
 
