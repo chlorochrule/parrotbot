@@ -64,7 +64,7 @@ def get_carousel_message(res_dicts):
                             data='action=buy&itemid={itemid}'.format(itemid=i+1)
                         )
                     ]
-                ) for i, product in enumerate(res_dicts[:3])
+                ) for i, product in enumerate(res_dicts)
             ]
         )
     )
