@@ -55,7 +55,7 @@ def get_carousel_message(res_dicts):
             columns=[
                 CarouselColumn(
                     thumbnail_image_url=product['image_url'],
-                    title=product['title'][:10],
+                    title=product['title'],
                     text=product['price'] + ' 円',
                     actions=[
                         PostbackTemplateAction(
@@ -64,7 +64,7 @@ def get_carousel_message(res_dicts):
                             data='action=buy&itemid={itemid}'.format(itemid=i+1)
                         )
                     ]
-                ) for i, product in enumerate(res_dicts)
+                ) for i, product in enumerate(res_dicts[:min(5, len(res_dicts))])
             ]
         )
     )
