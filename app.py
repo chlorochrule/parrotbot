@@ -10,6 +10,18 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, \
 TemplateSendMessage, CarouselTemplate, CarouselColumn, PostbackTemplateAction, MessageTemplateAction, \
 URITemplateAction
 
+from requests import post
+from json import loads
+from urllib.parse import quote
+
+URL = 'https://amazon-api-router.herokuapp.com/'
+
+def get_product_list(keywords, page=1):
+    keywords = quote(keywords)
+    payload = {'keywords': keywords, 'ItemPage': page}
+    res = post(URL, data=payload)
+    return loads(res.text)
+
 def get_auth_api():
     consumer_key = os.environ['consumer_key']
     consumer_secret = os.environ['consumer_secret']
@@ -36,51 +48,23 @@ def get_reply_text():
     ]
     return texts[randint(0, len(texts)-1)]
 
-def get_carousel_message():
+def get_carousel_message(res_dicts):
     return TemplateSendMessage(
-        alt_text='Carousel template',
+        alt_text='Amazon Products',
         template=CarouselTemplate(
             columns=[
                 CarouselColumn(
-                    thumbnail_image_url='https://example.com/item1.jpg',
-                    title='this is menu1',
-                    text='description1',
+                    thumbnail_image_url=product['image_url'],
+                    title=product['title'],
+                    text=product['price'] + ' 円',
                     actions=[
                         PostbackTemplateAction(
-                            label='postback1',
-                            text='postback text1',
-                            data='action=buy&itemid=1'
-                        ),
-                        MessageTemplateAction(
-                            label='message1',
-                            text='message text1'
-                        ),
-                        URITemplateAction(
-                            label='uri1',
-                            uri='http://example.com/1'
+                            label='購入',
+                            text='item{itemid}'.format(itemid=i+1),
+                            data='action=buy&itemid={itemid}'.format(itemid=i+1)
                         )
                     ]
-                ),
-                CarouselColumn(
-                    thumbnail_image_url='https://example.com/item2.jpg',
-                    title='this is menu2',
-                    text='description2',
-                    actions=[
-                        PostbackTemplateAction(
-                            label='postback2',
-                            text='postback text2',
-                            data='action=buy&itemid=2'
-                        ),
-                        MessageTemplateAction(
-                            label='message2',
-                            text='message text2'
-                        ),
-                        URITemplateAction(
-                            label='uri2',
-                            uri='http://example.com/2'
-                        )
-                    ]
-                )
+                ) for i, product in enumerate(res_dicts)
             ]
         )
     )
@@ -107,7 +91,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     if event.message.text == 'carousel':
-        message = get_carousel_message()
+        res_dicts = get_product_list('ティッシュ')
+        message = get_carousel_message(res_dicts)
         line_bot_api.reply_message(
             event.reply_token,
             message
