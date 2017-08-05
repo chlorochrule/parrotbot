@@ -55,7 +55,7 @@ def get_carousel_message(res_dicts):
             columns=[
                 CarouselColumn(
                     thumbnail_image_url=product['image_url'],
-                    title=product['title'],
+                    title=product['title'][:min(40, len(product['title']))],
                     text=product['price'] + ' 円',
                     actions=[
                         PostbackTemplateAction(
